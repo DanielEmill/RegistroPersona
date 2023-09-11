@@ -12,10 +12,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Date
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import java.util.Date
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @HiltViewModel
 class PersonaViewModel @Inject constructor(
@@ -31,11 +33,6 @@ class PersonaViewModel @Inject constructor(
 
     private val _isMessageShown = MutableSharedFlow<Boolean>()
     val isMessageShownFlow = _isMessageShown.asSharedFlow()
-    fun setMessageShown() {
-        viewModelScope.launch {
-            _isMessageShown.emit(true)
-        }
-    }
 
     val personas: StateFlow<List<Persona>> = personaDb.personaDao().getAll().stateIn(
         scope = viewModelScope,
@@ -45,25 +42,30 @@ class PersonaViewModel @Inject constructor(
 
     fun savePersona() {
         viewModelScope.launch {
-            val persona = Persona(
-                nombre = nombre,
-                telefono = telefono,
-                celular = celular,
-                email = email,
-                direccion = direccion,
-                fechaNacimiento = fechaNacimiento,
-                ocupacion = ocupacion
-            )
-            personaDb.personaDao().save(persona)
-            limpiar()
+            if (isValidPersona()) {
+                val persona = Persona(
+                    nombre = nombre,
+                    telefono = telefono,
+                    celular = celular,
+                    email = email,
+                    direccion = direccion,
+                    fechaNacimiento = fechaNacimiento,
+                    ocupacion = ocupacion
+                )
+                personaDb.personaDao().save(persona)
+                limpiar()
+                setMessageShown("Persona guardada exitosamente")
+            } else {
+                setMessageShown("Por favor, complete todos los campos obligatorios")
+            }
         }
     }
-
 
     fun deletePersona(persona: Persona) {
         viewModelScope.launch {
             personaDb.personaDao().delete(persona)
             limpiar()
+            setMessageShown("Persona eliminada exitosamente")
         }
     }
 
@@ -77,4 +79,29 @@ class PersonaViewModel @Inject constructor(
         ocupacion = ""
     }
 
+    private fun setMessageShown(message: String) {
+        viewModelScope.launch {
+            _isMessageShown.emit(true)
+        }
+    }
+
+    private fun isValidPersona(): Boolean {
+        val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+
+        return nombre.isNotBlank() &&
+                telefono.isNotBlank() && telefono.length == 10 &&
+                celular.isNotBlank() && celular.length == 10 &&
+                email.isNotBlank() && email.matches(emailPattern.toRegex()) &&
+                fechaNacimiento != null &&
+                isValidDate(fechaNacimiento!!) &&
+                direccion.isNotBlank() &&
+                ocupacion.isNotBlank()
+    }
+
+    private fun isValidDate(date: Date): Boolean {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val today = Date()
+
+        return !date.after(today)
+    }
 }
