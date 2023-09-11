@@ -188,4 +188,3 @@ fun MyBar(){
         title = { Text(text = "Registro de Personas") }
     )
 }
-
