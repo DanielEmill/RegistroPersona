@@ -28,11 +28,23 @@ class PersonaViewModel @Inject constructor(
     var celular by mutableStateOf("")
     var email by mutableStateOf("")
     var direccion by mutableStateOf("")
-    var fechaNacimiento by mutableStateOf<Date?>(null)
-    var ocupacion by mutableStateOf("")
 
+    var isValidNombre by mutableStateOf(true)
+    var isValidTelefono by mutableStateOf(true)
+    var isValidCelular by mutableStateOf(true)
+    var isValidEmail by mutableStateOf(true)
+    var isValidDireccion by mutableStateOf(true)
+    var isValidOcupacion by mutableStateOf(true)
+
+    // var fechaNacimiento by mutableStateOf<Date?>(null)
+    var ocupacion by mutableStateOf("")
     private val _isMessageShown = MutableSharedFlow<Boolean>()
     val isMessageShownFlow = _isMessageShown.asSharedFlow()
+    fun setMessageShown() {
+        viewModelScope.launch {
+            _isMessageShown.emit(true)
+        }
+    }
 
     val personas: StateFlow<List<Persona>> = personaDb.personaDao().getAll().stateIn(
         scope = viewModelScope,
@@ -49,14 +61,11 @@ class PersonaViewModel @Inject constructor(
                     celular = celular,
                     email = email,
                     direccion = direccion,
-                    fechaNacimiento = fechaNacimiento,
+                    //fechaNacimiento = fechaNacimiento,
                     ocupacion = ocupacion
                 )
                 personaDb.personaDao().save(persona)
                 limpiar()
-                setMessageShown("Persona guardada exitosamente")
-            } else {
-                setMessageShown("Por favor, complete todos los campos obligatorios")
             }
         }
     }
@@ -65,7 +74,6 @@ class PersonaViewModel @Inject constructor(
         viewModelScope.launch {
             personaDb.personaDao().delete(persona)
             limpiar()
-            setMessageShown("Persona eliminada exitosamente")
         }
     }
 
@@ -75,33 +83,22 @@ class PersonaViewModel @Inject constructor(
         celular = ""
         email = ""
         direccion = ""
-        fechaNacimiento = null
+        //fechaNacimiento = null
         ocupacion = ""
-    }
-
-    private fun setMessageShown(message: String) {
-        viewModelScope.launch {
-            _isMessageShown.emit(true)
-        }
     }
 
     private fun isValidPersona(): Boolean {
         val emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
 
-        return nombre.isNotBlank() &&
-                telefono.isNotBlank() && telefono.length == 10 &&
-                celular.isNotBlank() && celular.length == 10 &&
-                email.isNotBlank() && email.matches(emailPattern.toRegex()) &&
-                fechaNacimiento != null &&
-                isValidDate(fechaNacimiento!!) &&
-                direccion.isNotBlank() &&
-                ocupacion.isNotBlank()
+        isValidNombre = nombre.isNotBlank()
+        isValidTelefono = telefono.isNotBlank() && telefono.length == 10
+        isValidCelular = celular.isNotBlank() && celular.length == 10
+        isValidEmail = email.isNotBlank() && email.matches(emailPattern.toRegex())
+        isValidDireccion = direccion.isNotBlank()
+        isValidOcupacion = ocupacion.isNotBlank()
+
+        return isValidNombre && isValidTelefono && isValidCelular && isValidEmail && isValidDireccion && isValidOcupacion
     }
 
-    private fun isValidDate(date: Date): Boolean {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val today = Date()
 
-        return !date.after(today)
-    }
 }
