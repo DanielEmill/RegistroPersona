@@ -15,12 +15,20 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import java.util.Date
 
 @HiltViewModel
 class PersonaViewModel @Inject constructor(
     private val personaDb: PersonaDb,
 ) : ViewModel() {
-    var Nombre by mutableStateOf("")
+    var nombre by mutableStateOf("")
+    var telefono by mutableStateOf("")
+    var celular by mutableStateOf("")
+    var email by mutableStateOf("")
+    var direccion by mutableStateOf("")
+    var fechaNacimiento by mutableStateOf<Date?>(null)
+    var ocupacion by mutableStateOf("")
+
     private val _isMessageShown = MutableSharedFlow<Boolean>()
     val isMessageShownFlow = _isMessageShown.asSharedFlow()
     fun setMessageShown() {
@@ -38,12 +46,19 @@ class PersonaViewModel @Inject constructor(
     fun savePersona() {
         viewModelScope.launch {
             val persona = Persona(
-                nombre = Nombre
+                nombre = nombre,
+                telefono = telefono,
+                celular = celular,
+                email = email,
+                direccion = direccion,
+                fechaNacimiento = fechaNacimiento,
+                ocupacion = ocupacion
             )
             personaDb.personaDao().save(persona)
             limpiar()
         }
     }
+
 
     fun deletePersona(persona: Persona) {
         viewModelScope.launch {
@@ -53,6 +68,13 @@ class PersonaViewModel @Inject constructor(
     }
 
     private fun limpiar() {
-        Nombre = ""
+        nombre = ""
+        telefono = ""
+        celular = ""
+        email = ""
+        direccion = ""
+        fechaNacimiento = null
+        ocupacion = ""
     }
+
 }
