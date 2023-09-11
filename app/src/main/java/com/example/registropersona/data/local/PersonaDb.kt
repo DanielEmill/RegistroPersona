@@ -2,6 +2,7 @@ package com.example.registropersona.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.registropersona.data.local.dao.PersonaDao
 import com.example.registropersona.data.local.entities.Persona
 
 @Database(
@@ -10,5 +11,5 @@ import com.example.registropersona.data.local.entities.Persona
     exportSchema = false
 )
 abstract class PersonaDb : RoomDatabase() {
-    abstract fun PersonaDb(): PersonaDb
+    abstract fun personaDao(): PersonaDao
 }
