@@ -1,161 +1,217 @@
-
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Divider
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
+import com.example.registropersona.data.local.entities.Persona
+import com.example.registropersona.util.CustomOutlinedTextField
+import com.example.registropersona.util.DropdownMenuBox
+import com.example.registropersona.util.SaveButton
 import com.example.registropersona.viewModel.PersonaViewModel
+import kotlinx.coroutines.flow.collectLatest
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun PersonaScreen(viewModel: PersonaViewModel = hiltViewModel()) {
+fun PersonaScreen(navController: NavHostController, viewModel: PersonaViewModel = hiltViewModel()) {
     val personas by viewModel.personas.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
+    val focusRequesters = remember {
+        listOf(
+            FocusRequester(),
+            FocusRequester(),
+            FocusRequester(),
+            FocusRequester(),
+        )
+    }
+    // Función para mostrar el mensaje de guardado
     LaunchedEffect(Unit) {
         viewModel.isMessageShownFlow.collectLatest { showMessage ->
             if (showMessage) {
                 snackbarHostState.showSnackbar(
-                    message = "Persona guardada exitosamente",
-                    duration = SnackbarDuration.Short
+                    message = "Persona guardada exitosamente", duration = SnackbarDuration.Short
                 )
             }
         }
     }
-
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+    // Pantalla con Scaffold
+    Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = Modifier.fillMaxSize(),
-        topBar = {MyBar()}
+        topBar = { MyBar() },
+        bottomBar = { Buttonbar(navController) }) {
+        // Contenido de la pantalla
+        ContentColumn(viewModel)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ContentColumn(viewModel: PersonaViewModel) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(8.dp)
     ) {
+        // Detalles de la persona
+        PersonDetails(viewModel)
+        // Botón de guardar
+        SaveButton(viewModel)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PersonDetails(viewModel: PersonaViewModel) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+    ) {
+        Text(
+            text = "Persona Detalle:",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        // Campos de entrada
+        CustomOutlinedTextField(
+            label = "Nombre",
+            value = viewModel.nombre,
+            modifier = Modifier.padding(vertical = 8.dp),
+            isValid = viewModel.isValidNombre,
+            onValueChange = { viewModel.nombre = it },
+            imeAction = ImeAction.Next
+        )
+        CustomOutlinedTextField(
+            label = "Teléfono",
+            value = viewModel.telefono,
+            modifier = Modifier.padding(vertical = 8.dp),
+            isValid = viewModel.isValidTelefono,
+            onValueChange = { viewModel.telefono = it },
+            imeAction = ImeAction.Next
+        )
+        CustomOutlinedTextField(
+            label = "Celular",
+            value = viewModel.celular,
+            modifier = Modifier.padding(vertical = 8.dp),
+            isValid = viewModel.isValidCelular,
+            onValueChange = { viewModel.celular = it },
+            imeAction = ImeAction.Next
+        )
+        CustomOutlinedTextField(
+            label = "Email",
+            value = viewModel.email,
+            modifier = Modifier.padding(vertical = 8.dp),
+            isValid = viewModel.isValidEmail,
+            onValueChange = { viewModel.email = it },
+            imeAction = ImeAction.None
+        )
+        DropdownMenuBox(viewModel)
+        CustomOutlinedTextField(
+            label = "Dirección",
+            value = viewModel.direccion,
+            modifier = Modifier.padding(vertical = 8.dp),
+            isValid = viewModel.isValidDireccion,
+            onValueChange = { viewModel.direccion = it },
+            imeAction = ImeAction.Done
+        )
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyBar() {
+    // Barra superior
+    TopAppBar(title = { Text(text = "Registro de Personas") })
+}
+
+@Composable
+fun Buttonbar(navController: NavHostController) {
+    // Barra inferior con botón para consultar personas
+    BottomAppBar(modifier = Modifier
+        .fillMaxWidth()
+        .background(Color.Black), content = {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            IconButton(onClick = {
+                navController.navigate("consultarPersona")
+            }) {
+                Icon(
+                    imageVector = Icons.Default.List,
+                    contentDescription = "Consultar Persona",
+                    tint = Color.White
+                )
+            }
+        }
+    })
+}
+
+//Consulta pantalla:
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun PersonaConsultaScreen(
+    navController: NavHostController, viewModel: PersonaViewModel = hiltViewModel()
+) {
+    val personas by viewModel.personas.collectAsState()
+
+    // Pantalla de consulta de personas con Scaffold
+    Scaffold(topBar = {
+        TopAppBar(
+            title = { Text(text = "Consulta de Persona") }, modifier = Modifier.fillMaxWidth()
+        )
+    }, content = {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
-                .padding(8.dp)
+                .padding(16.dp)
         ) {
-            Column(
+            Text(
+                text = "Lista (${personas.size} registros):",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Lista de personas
+            PersonList(personas, viewModel)
+        }
+    })
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PersonList(personas: List<Persona>, viewModel: PersonaViewModel) {
+    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+        items(personas) { persona ->
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(vertical = 8.dp)
             ) {
-                Text(
-                    text = "Persona Detalle:",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                CustomOutlinedTextField("Nombre", viewModel.nombre, Modifier.padding(vertical = 8.dp), viewModel.isValidNombre) { viewModel.nombre = it }
-                CustomOutlinedTextField("Teléfono", viewModel.telefono, Modifier.padding(vertical = 8.dp), viewModel.isValidTelefono) { viewModel.telefono = it }
-                CustomOutlinedTextField("Celular", viewModel.celular, Modifier.padding(vertical = 8.dp), viewModel.isValidCelular) { viewModel.celular = it }
-                CustomOutlinedTextField("Email", viewModel.email, Modifier.padding(vertical = 8.dp), viewModel.isValidEmail) { viewModel.email = it }
-                CustomOutlinedTextField("Dirección", viewModel.direccion, Modifier.padding(vertical = 8.dp), viewModel.isValidDireccion) { viewModel.direccion = it }
-                CustomOutlinedTextField("Ocupación", viewModel.ocupacion, Modifier.padding(vertical = 8.dp), viewModel.isValidOcupacion) { viewModel.ocupacion = it }
-
-                OutlinedButton(
-                    onClick = {
-                        viewModel.savePersona()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddCircle,
-                            contentDescription = "Guardar"
-                        )
-                        Text(text = "Guardar")
-                    }
-                }
-
-                Divider(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Gray)
-                        .padding(vertical = 8.dp)
-                )
-
-                Text(
-                    text = "Lista (${personas.size} registros):",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(personas) { persona ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "ID: ${persona.personaId}",
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(text = persona.nombre)
-                            OutlinedButton(
-                                onClick = {
-                                    viewModel.deletePersona(persona)
-                                }
-                            ) {
-                                Text(text = "Eliminar")
-                            }
-                        }
-                    }
-                }
+                // Detalles de cada persona en la lista
+                PersonDetailsCard(persona, viewModel)
             }
         }
     }
@@ -163,73 +219,48 @@ fun PersonaScreen(viewModel: PersonaViewModel = hiltViewModel()) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomOutlinedTextField(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    isValid: Boolean,
-    onValueChange: (String) -> Unit
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
-        label = { Text(text = label) },
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(
-            color = if (isValid) Color.Black else Color.Red
-        ),
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = if (isValid) Color.Gray else Color.Red,
-            unfocusedBorderColor = if (isValid) Color.Gray  else Color.Red
-        )
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MyBar(){
-    TopAppBar(
-        title = { Text(text = "Registro de Personas") }
-    )
-}@Composable
-fun Buttonbar(navController: NavHostController) {
-    Box(
+fun PersonDetailsCard(persona: Persona, viewModel: PersonaViewModel) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Gray)
+            .padding(16.dp)
     ) {
-        BottomAppBar(
-            content = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(
-                        onClick = {
-                            navController.navigate("consultarPersona")
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Consultar Persona"
-                        )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Volver a PersonaScreen"
-                        )
-                    }
-                }
-            }
+        Text(
+            text = "ID: ${persona.personaId}",
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
         )
+        Text(
+            text = "Nombre: ${persona.nombre}", modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = "Teléfono: ${persona.telefono ?: "N/A"}",
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = "Celular: ${persona.celular ?: "N/A"}",
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = "Email: ${persona.email ?: "N/A"}", modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = "Dirección: ${persona.direccion ?: "N/A"}",
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = "Ocupación: ${persona.ocupacion ?: "N/A"}",
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+
+        OutlinedButton(
+            onClick = {
+                viewModel.deletePersona(persona)
+            }, modifier = Modifier.align(Alignment.End)
+        ) {
+            Text(text = "Eliminar")
+        }
     }
 }
+
+

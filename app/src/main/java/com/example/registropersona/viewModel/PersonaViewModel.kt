@@ -28,6 +28,7 @@ class PersonaViewModel @Inject constructor(
     var celular by mutableStateOf("")
     var email by mutableStateOf("")
     var direccion by mutableStateOf("")
+    var ocupacion by mutableStateOf("")
 
     var isValidNombre by mutableStateOf(true)
     var isValidTelefono by mutableStateOf(true)
@@ -37,7 +38,7 @@ class PersonaViewModel @Inject constructor(
     var isValidOcupacion by mutableStateOf(true)
 
     // var fechaNacimiento by mutableStateOf<Date?>(null)
-    var ocupacion by mutableStateOf("")
+
     private val _isMessageShown = MutableSharedFlow<Boolean>()
     val isMessageShownFlow = _isMessageShown.asSharedFlow()
     fun setMessageShown() {
