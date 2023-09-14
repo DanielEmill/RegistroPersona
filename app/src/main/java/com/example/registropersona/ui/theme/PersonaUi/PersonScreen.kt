@@ -59,7 +59,6 @@ fun PersonaScreen(navController: NavHostController, viewModel: PersonaViewModel 
         modifier = Modifier.fillMaxSize(),
         topBar = { MyBar() },
         bottomBar = { Buttonbar(navController) }) {
-        // Contenido de la pantalla
         ContentColumn(viewModel)
     }
 }
@@ -70,7 +69,7 @@ fun ContentColumn(viewModel: PersonaViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(8.dp)
+            .padding(16.dp)
     ) {
         // Detalles de la persona
         PersonDetails(viewModel)
@@ -92,6 +91,7 @@ fun PersonDetails(viewModel: PersonaViewModel) {
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
+        Spacer(modifier = Modifier.height(8.dp))
         // Campos de entrada
         CustomOutlinedTextField(
             label = "Nombre",
