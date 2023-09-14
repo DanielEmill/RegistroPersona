@@ -3,6 +3,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
@@ -15,10 +16,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.registropersona.data.local.entities.Persona
+import com.example.registropersona.util.CustomNumericalOutlinedTextField
 import com.example.registropersona.util.CustomOutlinedTextField
 import com.example.registropersona.util.DropdownMenuBox
 import com.example.registropersona.util.SaveButton
@@ -98,22 +101,32 @@ fun PersonDetails(viewModel: PersonaViewModel) {
             onValueChange = { viewModel.nombre = it },
             imeAction = ImeAction.Next
         )
-        CustomOutlinedTextField(
+        CustomNumericalOutlinedTextField(
             label = "Teléfono",
             value = viewModel.telefono,
             modifier = Modifier.padding(vertical = 8.dp),
             isValid = viewModel.isValidTelefono,
-            onValueChange = { viewModel.telefono = it },
+            onValueChange = { newValue ->
+                // Asegura que solo se ingresen números
+                val numericValue = newValue.filter { it.isDigit() }
+                viewModel.telefono = numericValue
+            },
             imeAction = ImeAction.Next
         )
-        CustomOutlinedTextField(
+
+        CustomNumericalOutlinedTextField(
             label = "Celular",
             value = viewModel.celular,
             modifier = Modifier.padding(vertical = 8.dp),
             isValid = viewModel.isValidCelular,
-            onValueChange = { viewModel.celular = it },
-            imeAction = ImeAction.Next
+            onValueChange = { newValue ->
+                val numericValue = newValue.filter { it.isDigit() }
+                viewModel.celular = numericValue
+            },
+            imeAction = ImeAction.Next,
+
         )
+
         CustomOutlinedTextField(
             label = "Email",
             value = viewModel.email,
